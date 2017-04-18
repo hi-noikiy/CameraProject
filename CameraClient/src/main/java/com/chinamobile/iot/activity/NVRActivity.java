@@ -8,12 +8,17 @@ import android.widget.GridView;
 import android.widget.Toast;
 
 import com.chinamobile.iot.R;
+import com.chinamobile.iot.entity.Device;
 import com.chinamobile.iot.entity.DeviceListBody;
+import com.chinamobile.iot.http.RetrofitHttpRequest;
+import com.chinamobile.iot.http.SubscriberOnNextListener;
 import com.chinamobile.iot.util.Logger;
 import com.chinamobile.iot.util.SharePreferenceUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import rx.observers.SafeSubscriber;
 
 public class NVRActivity extends BaseActivity {
     private GridView mGridView = null;
@@ -32,27 +37,26 @@ public class NVRActivity extends BaseActivity {
     private void initData(){
         mServerIp = SharePreferenceUtil.getServerIP();
         mServerPort = SharePreferenceUtil.getServerPort();
-//        getDevices(mServerIp, mServerPort);
+        getDevices();
     }
 
     private void initView(){
         mGridView = (GridView) findViewById(R.id.id_gv);
         mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swip_refersh);
-        showWaitProgress("");
     }
 
     /**
      * 获取直播地址列表
-     *
-     * @param ip   服务器地址
-     * @param port 服务器端口号
      */
-    private void getDevices(String ip, String port) {
-        if (TextUtils.isEmpty(ip) || TextUtils.isEmpty(port)) {
-            return;
-        }
+    private void getDevices() {
 
-        String url = String.format("http://%s:%s/api/v1/getdevicelist?AppType=EasyNVR", ip, port);
-        Logger.mlj("nvr url=" + url);
+
+        RetrofitHttpRequest.getInstance().getDeviceList("EasyNVR",new SubscriberOnNextListener<List<Device>>(){
+            @Override
+            public void onNext(List<Device> devices) {
+                super.onNext(devices);
+                Logger.mlj("devices=" + devices);
+            }
+        });
     }
 }
